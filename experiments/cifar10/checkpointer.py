@@ -72,15 +72,11 @@ def get_optimizer(config):
         tx = optax.adam(lr)
 
     if config.params.do_gradient_clipping:
-        tx = optax.chain(
-            optax.clip_by_global_norm(config.params.gradient_clipping), tx
-        )
+        tx = optax.chain(optax.clip_by_global_norm(config.params.gradient_clipping), tx)
     return tx
 
 
-def get_checkpointer_fns(
-    outfolder, config, model_config, criterion="train/loss"
-):
+def get_checkpointer_fns(outfolder, config, model_config, criterion="train/loss"):
     options = ocp.CheckpointManagerOptions(
         max_to_keep=config.max_to_keep,
         save_interval_steps=config.save_interval_steps,
@@ -129,9 +125,7 @@ def get_latest_train_state(mngr, state):
 def _restore_train_state(mngr, ts, which):
     step = mngr.latest_step() if which == "latest" else mngr.best_step()
     restored_dict = mngr.restore(step)
-    restored_optimizer = _restore_optimizer_state(
-        ts.opt_state, restored_dict["opt_state"]
-    )
+    restored_optimizer = _restore_optimizer_state(ts.opt_state, restored_dict["opt_state"])
     if "batch_stats" not in restored_dict:
         ts = ts.replace(
             params=restored_dict["params"],

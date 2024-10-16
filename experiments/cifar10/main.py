@@ -55,13 +55,9 @@ def get_model_and_loss(config):
     elif config.model == "flow_matching":
         matching_fns = FlowMatching(score_model.apply, FlowMatchingConfig())
     elif config.model == "consistency_flow_matching":
-        matching_fns = ConsistencyFlowMatching(
-            score_model.apply, ConsistencyFlowMatchingConfig()
-        )
+        matching_fns = ConsistencyFlowMatching(score_model.apply, ConsistencyFlowMatchingConfig())
     elif config.model == "denoising_diffusion":
-        matching_fns = DenoisingDiffusion(
-            score_model.apply, DenoisingDiffusionConfig()
-        )
+        matching_fns = DenoisingDiffusion(score_model.apply, DenoisingDiffusionConfig())
     else:
         raise ValueError("dont find model")
     return score_model, matching_fns
@@ -129,14 +125,10 @@ def metrics_to_summary(train_metrics, val_metrics):
     train_metrics = common_utils.get_metrics(train_metrics)
     val_metrics = common_utils.get_metrics(val_metrics)
     train_summary = {
-        f"train/{k}": v
-        for k, v in jax.tree.map(
-            lambda x: float(x.mean()), train_metrics
-        ).items()
+        f"train/{k}": v for k, v in jax.tree.map(lambda x: float(x.mean()), train_metrics).items()
     }
     val_summary = {
-        f"val/{k}": v
-        for k, v in jax.tree.map(lambda x: float(x.mean()), val_metrics).items()
+        f"val/{k}": v for k, v in jax.tree.map(lambda x: float(x.mean()), val_metrics).items()
     }
     return train_summary | val_summary
 
@@ -172,16 +164,12 @@ def train(rng_key, model, matching_fns, config, train_iter, val_iter, model_id):
         pbatch = common_utils.shard(batch)
         if step == 1 and jax.process_index() == 0:
             logging.info(f"pbatch shape: {pbatch['image'].shape}")
-        metrics, pstate = pstep_fn(
-            jr.split(train_key, jax.device_count()), pstate, pbatch, psigmas
-        )
+        metrics, pstate = pstep_fn(jr.split(train_key, jax.device_count()), pstate, pbatch, psigmas)
         train_metrics.append(metrics)
         is_first_or_last_step = step == config.training.n_steps or step == 1
         if step % config.training.n_eval_frequency == 0 or is_first_or_last_step:
             val_metrics = []
-            for val_idx, batch in zip(
-                range(config.training.n_eval_batches), val_iter
-            ):
+            for val_idx, batch in zip(range(config.training.n_eval_batches), val_iter):
                 pbatch = common_utils.shard(batch)
                 metrics = peval_fn(
                     jr.split(jr.fold_in(val_key, val_idx), jax.device_count()),
@@ -279,9 +267,7 @@ def log_images(rng_key, state, step, model_id, sampling_fn):
         wandb.log({"images": wandb.Image(fig)}, step=step)
 
     for dpi in [200]:
-        fl = os.path.join(
-            FLAGS.workdir, "figures", f"{model_id}-sampled-{step}-dpi-{dpi}.png"
-        )
+        fl = os.path.join(FLAGS.workdir, "figures", f"{model_id}-sampled-{step}-dpi-{dpi}.png")
         fig.savefig(fl, dpi=dpi)
 
 

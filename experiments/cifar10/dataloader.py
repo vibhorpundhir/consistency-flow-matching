@@ -1,9 +1,9 @@
 import jax
 import tensorflow as tf
 import tensorflow_datasets as tfds
+from absl import logging
 from jax import numpy as jnp
 from jax import random as jr
-from absl import logging
 
 
 def data_loaders(rng_key, config, split="train", outpath: str = None):
